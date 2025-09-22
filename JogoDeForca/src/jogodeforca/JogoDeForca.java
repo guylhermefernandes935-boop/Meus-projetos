@@ -210,7 +210,7 @@ public class JogoDeForca {
                 System.out.println();
                 System.out.println("Você tem "+chances2+" chances ");
                 System.out.println("Palavra Screta: "+Arrays.toString(letras2));
-                System.out.println("Digite uma letra: ");
+                System.out.print("Digite uma letra: ");
                 caracter2 = sc.nextLine().toUpperCase().charAt(0);
                 
                 boolean erro2 = true;
