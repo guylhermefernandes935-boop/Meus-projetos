@@ -25,7 +25,8 @@ public class GamePanel extends JPanel implements ActionListener{
     Timer timer;
     Random random;
     MusicaPlayer musica = new MusicaPlayer();
-    
+    boolean directionChanged = false;
+    boolean paused = false;
     public GamePanel() {
         random = new Random();
         this.setPreferredSize(new Dimension(SCREEN_WIDTH, SCREEN_HEIGHT));
@@ -46,6 +47,7 @@ public class GamePanel extends JPanel implements ActionListener{
         
         newApple();
         
+        musica.stop();
         musica.play("/musica/Gymnopedie_20No_201.mp3");
         
         running = true;
@@ -91,9 +93,19 @@ public class GamePanel extends JPanel implements ActionListener{
             g.setFont(new Font("Arial", Font.BOLD, 14));
             FontMetrics metrics1 = getFontMetrics(g.getFont());
             g.drawString("Pontuação: "+applesEaten, (SCREEN_WIDTH - metrics1.stringWidth("Pontuação"))/2, g.getFont().getSize());
+        
+            if(paused){
+                g.setColor(Color.red);
+                g.setFont(new Font("Arial", Font.BOLD, 50));
+
+                FontMetrics metric2 = getFontMetrics(g.getFont());
+
+                g.drawString("PAUSADO", (SCREEN_WIDTH - metric2.stringWidth("PAUSADO"))/2, SCREEN_HEIGHT/2);
+            }
         } else {
             gameOver(g);
         }
+        
     }
     
     public void newApple(){
@@ -121,18 +133,10 @@ public class GamePanel extends JPanel implements ActionListener{
             y[i] = y[i-1];
         }
         switch (direction){
-            case 'U': 
-                    y[0] -= UNIT_SIZE;
-                break;
-            case 'D': 
-                    y[0] += UNIT_SIZE;
-                break;
-            case 'L': 
-                    x[0] -= UNIT_SIZE;
-                break;
-            case 'R': 
-                    x[0] += UNIT_SIZE;
-                break;
+            case 'U' -> y[0] -= UNIT_SIZE;
+            case 'D' -> y[0] += UNIT_SIZE;
+            case 'L' -> x[0] -= UNIT_SIZE;
+            case 'R' -> x[0] += UNIT_SIZE;
         }
     }
     
@@ -196,6 +200,7 @@ public class GamePanel extends JPanel implements ActionListener{
     
     @Override
     public void actionPerformed(ActionEvent e) {
+        directionChanged = false;
         if(running){
             move();
             checkApple();
@@ -218,27 +223,36 @@ public class GamePanel extends JPanel implements ActionListener{
     }
     
     public class MyKeyadapter extends KeyAdapter{
+       
         @Override
         public void keyPressed(KeyEvent e){
+            if(paused && e.getKeyCode() != KeyEvent.VK_SPACE){
+                return;
+            }
+            
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_LEFT -> { 
-                    if(direction != 'R'){
+                    if(!directionChanged && direction != 'R'){
                         direction = 'L';
+                        directionChanged = true;
                     }
                 }
                 case KeyEvent.VK_RIGHT -> { 
-                    if(direction != 'L'){
+                    if(!directionChanged && direction != 'L'){
                         direction = 'R';
+                        directionChanged = true;
                     }
                 }
                 case KeyEvent.VK_UP -> { 
-                    if(direction != 'D'){
+                    if(!directionChanged && direction != 'D'){
                         direction = 'U';
+                        directionChanged = true;
                     }
                 }
                 case KeyEvent.VK_DOWN -> { 
-                    if(direction != 'U'){
+                    if(!directionChanged && direction != 'U'){
                         direction = 'D';
+                        directionChanged = true;
                     }
                 }
                 case KeyEvent.VK_ENTER -> { 
@@ -249,6 +263,19 @@ public class GamePanel extends JPanel implements ActionListener{
                         restarGame();
                         //Window janela = SwingUtilities.getWindowAncestor(GamePanel.this);
                         //janela.dispose();
+                    }
+                }
+                case KeyEvent.VK_SPACE -> {
+                    if(running){
+                       if(!paused){
+                           paused = true;
+                           repaint();
+                           timer.stop();
+                       } else {
+                            paused = false;
+                            timer.start();
+                            repaint();
+                        }
                     }
                 }
             }
